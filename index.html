@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>217 — טופס קליטה</title>
+  <meta name="theme-color" content="#b91c1c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="217 שירות" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --red: #b91c1c;
+      --red-dark: #7f1d1d;
+      --red-light: #fee2e2;
+      --bg: #f5f3ef;
+      --card: #ffffff;
+      --text: #1c1917;
+      --muted: #78716c;
+      --border: #e7e5e4;
+      --green: #16a34a;
+      --orange: #ea580c;
+      --radius: 12px;
+      --shadow: 0 2px 20px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+```
+/* ── Header ── */
+.app-header {
+  background: var(--red);
+  color: #fff;
+  padding: 16px 20px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+.badge {
+  background: #fff;
+  color: var(--red);
+  font-weight: 900;
+  font-size: 20px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.header-title { font-size: 17px; font-weight: 700; }
+.header-sub { font-size: 12px; opacity: 0.8; margin-top: 1px; }
+.doc-num { margin-right: auto; font-size: 13px; opacity: 0.6; font-weight: 300; }
+
+/* ── Content ── */
+.content { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+/* ── Technician selector ── */
+.tech-bar {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tech-bar label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.tech-bar select {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'Heebo', sans-serif;
+  font-size: 15px;
+  background: #fafaf9;
+  color: var(--text);
+  direction: rtl;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.card-title {
+  background: var(--red-light);
+  color: var(--red);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-bottom: 1px solid #fecaca;
+}
+.card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Fields ── */
+.row { display: flex; gap: 10px; }
+.field { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.field label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
+.field label .req { color: var(--red); }
+.field input, .field textarea, .field select {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: 'Heebo', sans-serif;
+  font-size: 15px;
+  background: #fafaf9;
+  color: var(--text);
+  direction: rtl;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.field input:focus, .field textarea:focus {
+  outline: none;
+  border-color: var(--red);
+  background: #fff;
+}
+.field textarea { resize: vertical; min-height: 80px; }
+
+/* ── Parts table ── */
+.parts-table { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+.parts-head {
+  display: grid;
+  grid-template-columns: 1fr 72px 100px;
+  background: #f5f3ef;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+.parts-head span:first-child { text-align: right; }
+.part-row {
+  display: grid;
+  grid-template-columns: 1fr 72px 100px;
+  align-items: center;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+.part-row:last-child { border-bottom: none; }
+.part-name { font-size: 14px; font-weight: 500; }
+.part-check { display: flex; justify-content: center; }
+.check-btn {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  border: 2px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.check-btn.ok.active { background: var(--green); border-color: var(--green); color: #fff; }
+.check-btn.bad.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+/* ── Approval ── */
+.approval-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.approval-row .big-check {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border-radius: 8px; border: 2px solid var(--border);
+  background: transparent; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.approval-row.checked .big-check { background: var(--red); border-color: var(--red); color: #fff; font-size: 16px; }
+.approval-text { font-size: 13px; line-height: 1.5; color: var(--text); }
+
+/* ── Submit ── */
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Heebo', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.submit-btn:active { background: var(--red-dark); }
+.submit-btn:disabled { background: #d1ccc8; cursor: not-allowed; }
+
+/* ── Status ── */
+.status-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.status-bar.show { opacity: 1; }
+.status-bar.success { background: var(--green); }
+.status-bar.error { background: var(--orange); }
+.status-bar.loading { background: #44403c; }
+
+/* ── Success screen ── */
+.success-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: 40px 20px;
+}
+.success-screen.show { display: flex; }
+.success-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--green); color: #fff;
+  font-size: 36px; display: flex;
+  align-items: center; justify-content: center;
+  margin-bottom: 20px;
+}
+.success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.success-screen p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+.new-btn {
+  margin-top: 28px;
+  padding: 13px 36px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Heebo', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Offline badge ── */
+.offline-badge {
+  display: none;
+  background: #78716c;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 12px;
+  text-align: center;
+}
+body.offline .offline-badge { display: block; }
+```
+
+  </style>
+</head>
+<body>
+
+<div class="offline-badge">⚠️ אין חיבור לאינטרנט — הטופס יישמר מקומית וישלח כשהחיבור יחזור</div>
+
+<header class="app-header">
+  <div class="badge">217</div>
+  <div>
+    <div class="header-title">טופס קליטה וטיפול</div>
+    <div class="header-sub">המרכז הישראלי למכונאות האופניים</div>
+  </div>
+  <div class="doc-num" id="docNum">#—</div>
+</header>
+
+<div class="content">
+
+  <!-- Success screen -->
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✓</div>
+    <h2>הטופס נשמר!</h2>
+    <p id="successMsg">הנתונים נשלחו לגוגל שיטס בהצלחה.</p>
+    <button class="new-btn" onclick="resetForm()">טופס חדש +</button>
+  </div>
+
+  <!-- Form -->
+
+  <div id="formContent">
+
+```
+<!-- Technician -->
+<div class="tech-bar">
+  <label>טכנאי:</label>
+  <select id="techSelect">
+    <option value="">— בחר טכנאי —</option>
+    <!-- Add technician names here -->
+    <option>טכנאי 1</option>
+    <option>טכנאי 2</option>
+    <option>טכנאי 3</option>
+  </select>
+</div>
+
+<!-- Customer -->
+<div class="card">
+  <div class="card-title">פרטי לקוח/ה</div>
+  <div class="card-body">
+    <div class="row">
+      <div class="field">
+        <label>שם <span class="req">*</span></label>
+        <input type="text" id="firstName" inputmode="text" autocomplete="given-name" />
+      </div>
+      <div class="field">
+        <label>משפחה</label>
+        <input type="text" id="lastName" autocomplete="family-name" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>טלפון <span class="req">*</span></label>
+        <input type="tel" id="phone" inputmode="tel" autocomplete="tel" />
+      </div>
+      <div class="field">
+        <label>דוא״ל</label>
+        <input type="email" id="email" inputmode="email" autocomplete="email" />
+      </div>
+    </div>
+    <div class="field">
+      <label>כתובת</label>
+      <input type="text" id="address" autocomplete="street-address" />
+    </div>
+  </div>
+</div>
+
+<!-- Bike -->
+<div class="card">
+  <div class="card-title">פרטי האופניים</div>
+  <div class="card-body">
+    <div class="row">
+      <div class="field">
+        <label>מותג</label>
+        <input type="text" id="brand" />
+      </div>
+      <div class="field">
+        <label>צבע</label>
+        <input type="text" id="color" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>שנה</label>
+        <input type="number" id="year" inputmode="numeric" min="1990" max="2030" />
+      </div>
+      <div class="field">
+        <label>מס׳ שלדה</label>
+        <input type="text" id="serial" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Complaint -->
+<div class="card">
+  <div class="card-title">תלונת הלקוח/ה</div>
+  <div class="card-body">
+    <div class="field">
+      <label>תיאור הבעיה</label>
+      <textarea id="complaint" rows="3" placeholder="תאר את הבעיה בחופשיות..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Diagnostics -->
+<div class="card">
+  <div class="card-title">דו״ח טיפול כללי</div>
+  <div class="card-body">
+    <div class="parts-table">
+      <div class="parts-head">
+        <span>רכיב</span>
+        <span>תקין</span>
+        <span>אסור לשימוש</span>
+      </div>
+      <!-- rows injected by JS -->
+      <div id="partsRows"></div>
+    </div>
+    <div class="field">
+      <label>פירוט הפגמים והתקלות</label>
+      <textarea id="faults" rows="3"></textarea>
+    </div>
+    <div class="field">
+      <label>המלצות וטיפול</label>
+      <textarea id="repairs" rows="3"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- Technician sign-off -->
+<div class="card">
+  <div class="card-title">סיום טיפול</div>
+  <div class="card-body">
+    <div class="row">
+      <div class="field">
+        <label>תאריך סיום</label>
+        <input type="date" id="endDate" />
+      </div>
+      <div class="field">
+        <label>שעת סיום</label>
+        <input type="time" id="endTime" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Approval -->
+<div class="approval-row" id="approvalRow" onclick="toggleApproval()">
+  <div class="big-check" id="approvalCheck"></div>
+  <div class="approval-text">הלקוח/ה מאשר/ת קבלת הטיפול ומסכים/ה לתנאי השירות של המרכז</div>
+</div>
+
+<button class="submit-btn" id="submitBtn" onclick="submitForm()">שמור ושלח לגוגל שיטס ↑</button>
+```
+
+  </div><!-- /formContent -->
+</div><!-- /content -->
+
+<div class="status-bar" id="statusBar"></div>
+
+<script>
+  // ─── CONFIG ────────────────────────────────────────────────────────────────
+  // הדבק כאן את ה-URL שתקבל מ-Google Apps Script לאחר פרסום
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWObhglvSKwOh3wHHXDdEB9biiukqv8uzqj2FkOm4OOCBpqmTM2Ek6uZ5YQG8QARIM3g/exec";
+
+  const TECHNICIANS = ["טכנאי 1", "טכנאי 2", "טכנאי 3"]; // שנה לשמות אמיתיים
+
+  const PARTS = [
+    { key: "brakes",     label: "בלמים" },
+    { key: "wheels",     label: "גלגלים" },
+    { key: "steering",   label: "היגוי" },
+    { key: "drivetrain", label: "הנעה" },
+    { key: "frame",      label: "שלדה" },
+    { key: "suspension", label: "שיכוך" },
+    { key: "electrical", label: "מערכת חשמל" },
+    { key: "other",      label: "אחר" },
+  ];
+  // ───────────────────────────────────────────────────────────────────────────
+
+  let partState = {}; // { brakes: {ok: false, bad: false}, ... }
+  let approved = false;
+
+  // Init
+  PARTS.forEach(p => { partState[p.key] = { ok: false, bad: false }; });
+  buildParts();
+  buildTechSelect();
+  setDocNum();
+  setDefaultDates();
+
+  function setDocNum() {
+    document.getElementById("docNum").textContent = "#" + Date.now().toString().slice(-5);
+  }
+
+  function setDefaultDates() {
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const timeStr = now.toTimeString().slice(0, 5);
+    document.getElementById("endDate").value = dateStr;
+    document.getElementById("endTime").value = timeStr;
+  }
+
+  function buildTechSelect() {
+    const sel = document.getElementById("techSelect");
+    sel.innerHTML = '<option value="">— בחר טכנאי —</option>';
+    TECHNICIANS.forEach(t => {
+      const o = document.createElement("option");
+      o.textContent = t; o.value = t;
+      sel.appendChild(o);
+    });
+  }
+
+  function buildParts() {
+    const container = document.getElementById("partsRows");
+    container.innerHTML = "";
+    PARTS.forEach(({ key, label }) => {
+      const row = document.createElement("div");
+      row.className = "part-row";
+      row.innerHTML = `
+        <span class="part-name">${label}</span>
+        <span class="part-check">
+          <button class="check-btn ok" id="${key}_ok" onclick="togglePart('${key}','ok')">✓</button>
+        </span>
+        <span class="part-check">
+          <button class="check-btn bad" id="${key}_bad" onclick="togglePart('${key}','bad')">!</button>
+        </span>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function togglePart(key, type) {
+    const other = type === "ok" ? "bad" : "ok";
+    partState[key][type] = !partState[key][type];
+    if (partState[key][type]) partState[key][other] = false;
+    document.getElementById(`${key}_ok`).classList.toggle("active", partState[key].ok);
+    document.getElementById(`${key}_bad`).classList.toggle("active", partState[key].bad);
+  }
+
+  function toggleApproval() {
+    approved = !approved;
+    document.getElementById("approvalRow").classList.toggle("checked", approved);
+    document.getElementById("approvalCheck").textContent = approved ? "✓" : "";
+  }
+
+  function getVal(id) { return document.getElementById(id)?.value?.trim() || ""; }
+
+  function showStatus(msg, type, duration = 3000) {
+    const bar = document.getElementById("statusBar");
+    bar.textContent = msg;
+    bar.className = `status-bar show ${type}`;
+    setTimeout(() => bar.className = "status-bar", duration);
+  }
+
+  async function submitForm() {
+    const firstName = getVal("firstName");
+    const phone = getVal("phone");
+    if (!firstName) { showStatus("נא למלא שם לקוח", "error"); return; }
+    if (!phone) { showStatus("נא למלא טלפון", "error"); return; }
+
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.textContent = "שולח...";
+    showStatus("שולח את הטופס...", "loading", 10000);
+
+    const partsStatus = {};
+    PARTS.forEach(({ key, label }) => {
+      partsStatus[label] = partState[key].ok ? "תקין" : partState[key].bad ? "אסור לשימוש" : "—";
+    });
+
+    const payload = {
+      timestamp: new Date().toLocaleString("he-IL"),
+      technician: getVal("techSelect") || document.getElementById("techSelect").value,
+      firstName, lastName: getVal("lastName"),
+      phone, email: getVal("email"), address: getVal("address"),
+      brand: getVal("brand"), color: getVal("color"),
+      year: getVal("year"), serial: getVal("serial"),
+      complaint: getVal("complaint"),
+      faults: getVal("faults"), repairs: getVal("repairs"),
+      endDate: getVal("endDate"), endTime: getVal("endTime"),
+      approved: approved ? "כן" : "לא",
+      ...partsStatus,
+    };
+
+    // Save to offline queue regardless
+    saveToQueue(payload);
+
+    if (!navigator.onLine) {
+      showStatus("נשמר — יישלח כשיהיה חיבור", "success");
+      afterSuccess(firstName, "הטופס נשמר ויישלח אוטומטית כשיחזור חיבור לאינטרנט.");
+      return;
+    }
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      clearQueue();
+      showStatus("✓ נשמר בגוגל שיטס!", "success");
+      afterSuccess(firstName, "הנתונים נשמרו בגוגל שיטס בהצלחה.");
+    } catch (e) {
+      showStatus("שגיאה — נשמר מקומית", "error");
+      afterSuccess(firstName, "לא הצלחנו לשלוח כעת — הטופס נשמר מקומית.");
+    }
+  }
+
+  function afterSuccess(name, msg) {
+    document.getElementById("successMsg").textContent = msg;
+    document.getElementById("formContent").style.display = "none";
+    document.getElementById("successScreen").classList.add("show");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function resetForm() {
+    document.getElementById("successScreen").classList.remove("show");
+    document.getElementById("formContent").style.display = "block";
+    document.querySelectorAll("input, textarea").forEach(el => el.value = "");
+    document.getElementById("techSelect").selectedIndex = 0;
+    approved = false;
+    document.getElementById("approvalRow").classList.remove("checked");
+    document.getElementById("approvalCheck").textContent = "";
+    PARTS.forEach(({ key }) => {
+      partState[key] = { ok: false, bad: false };
+      document.getElementById(`${key}_ok`).classList.remove("active");
+      document.getElementById(`${key}_bad`).classList.remove("active");
+    });
+    setDocNum();
+    setDefaultDates();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ── Offline queue ──
+  function saveToQueue(data) {
+    const q = JSON.parse(localStorage.getItem("formQueue") || "[]");
+    q.push(data);
+    localStorage.setItem("formQueue", JSON.stringify(q));
+  }
+  function clearQueue() { localStorage.removeItem("formQueue"); }
+
+  async function flushQueue() {
+    const q = JSON.parse(localStorage.getItem("formQueue") || "[]");
+    if (!q.length) return;
+    for (const payload of q) {
+      try {
+        await fetch(SCRIPT_URL, { method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+      } catch(e) { return; }
+    }
+    clearQueue();
+    showStatus("✓ טפסים שמורים נשלחו!", "success");
+  }
+
+  window.addEventListener("online", flushQueue);
+  window.addEventListener("offline", () => document.body.classList.add("offline"));
+  window.addEventListener("online", () => document.body.classList.remove("offline"));
+  if (!navigator.onLine) document.body.classList.add("offline");
+
+  // ── Service Worker registration ──
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+</script>
+
+</body>
+</html>
