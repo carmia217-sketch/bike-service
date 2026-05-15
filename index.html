@@ -1,18 +1,49 @@
 <!DOCTYPE html>
-
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>217 — טופס קליטה</title>
+  <title>217 — מערכת ניהול שירות</title>
   <meta name="theme-color" content="#b91c1c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="217 שירות" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, getDoc, doc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ─── FIREBASE CONFIG ────────────────────────────────────────────────────
+    // החלף את הערכים האלה בפרטי הפרויקט שלך מ-Firebase Console
+    const firebaseConfig = {
+      apiKey: "AIzaSyCl7nY0ZIlUlsOqKPlTcJgTs0_hIaYSYZ8",
+      authDomain: "bike217-1eab9.firebaseapp.com",
+      projectId: "bike217-1eab9",
+      storageBucket: "bike217-1eab9.firebasestorage.app",
+      messagingSenderId: "780527427656",
+      appId: "1:780527427656:web:ac193e9de12334eb6d4a0b"
+    };
+    // ────────────────────────────────────────────────────────────────────────
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window._db = db;
+    window._col = (name) => collection(db, name);
+    window._addDoc = addDoc;
+    window._getDocs = getDocs;
+    window._getDoc = getDoc;
+    window._doc = doc;
+    window._updateDoc = updateDoc;
+    window._query = query;
+    window._where = where;
+    window._orderBy = orderBy;
+    window._firebaseReady = true;
+    window.dispatchEvent(new Event("firebaseReady"));
+  </script>
+
   <style>
     :root {
       --red: #b91c1c;
@@ -24,635 +55,704 @@
       --muted: #78716c;
       --border: #e7e5e4;
       --green: #16a34a;
+      --green-light: #dcfce7;
       --orange: #ea580c;
+      --blue: #1d4ed8;
       --radius: 12px;
       --shadow: 0 2px 20px rgba(0,0,0,0.08);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Heebo', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── SCREENS ── */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: block; }
+
+    /* ── LOGIN ── */
+    #loginScreen {
+      background: linear-gradient(160deg, var(--red-dark) 0%, var(--red) 60%, #dc2626 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 24px; min-height: 100vh;
+    }
+    #loginScreen.active { display: flex; }
+    .login-logo { background: #fff; color: var(--red); font-weight: 900; font-size: 36px; padding: 10px 20px; border-radius: 12px; letter-spacing: 2px; margin-bottom: 8px; }
+    .login-subtitle { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 40px; }
+    .login-card { background: #fff; border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+    .login-card h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+    .login-field { margin-bottom: 14px; }
+    .login-field label { font-size: 12px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 5px; }
+    .login-field input, .login-field select {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; font-family: 'Heebo', sans-serif; font-size: 15px;
+      background: #fafaf9; color: var(--text); direction: rtl;
+    }
+    .login-field input:focus { outline: none; border-color: var(--red); }
+    .login-btn {
+      width: 100%; padding: 14px; background: var(--red); color: #fff;
+      border: none; border-radius: 10px; font-family: 'Heebo', sans-serif;
+      font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 6px;
+    }
+    .login-error { color: var(--red); font-size: 13px; margin-top: 8px; text-align: center; min-height: 18px; }
+
+    /* ── APP HEADER ── */
+    .app-header {
+      background: var(--red); color: #fff;
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    .header-badge { background: #fff; color: var(--red); font-weight: 900; font-size: 18px; padding: 3px 9px; border-radius: 6px; flex-shrink: 0; }
+    .header-title { font-size: 15px; font-weight: 700; flex: 1; }
+    .header-tech { font-size: 12px; opacity: 0.8; }
+    .logout-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 12px; border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 13px; cursor: pointer; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #fff; border-top: 1px solid var(--border);
+      display: flex; z-index: 100;
       padding-bottom: env(safe-area-inset-bottom);
     }
+    .nav-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      padding: 10px 0; border: none; background: transparent;
+      font-family: 'Heebo', sans-serif; font-size: 11px; color: var(--muted);
+      cursor: pointer; gap: 3px; transition: color 0.15s;
+    }
+    .nav-btn.active { color: var(--red); }
+    .nav-btn svg { width: 22px; height: 22px; }
+    .content { padding: 14px 14px 80px; max-width: 600px; margin: 0 auto; }
 
-```
-/* ── Header ── */
-.app-header {
-  background: var(--red);
-  color: #fff;
-  padding: 16px 20px 14px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-}
-.badge {
-  background: #fff;
-  color: var(--red);
-  font-weight: 900;
-  font-size: 20px;
-  padding: 3px 10px;
-  border-radius: 6px;
-  letter-spacing: 1px;
-  flex-shrink: 0;
-}
-.header-title { font-size: 17px; font-weight: 700; }
-.header-sub { font-size: 12px; opacity: 0.8; margin-top: 1px; }
-.doc-num { margin-right: auto; font-size: 13px; opacity: 0.6; font-weight: 300; }
+    /* ── CARDS ── */
+    .card { background: var(--card); border-radius: var(--radius); margin-bottom: 12px; box-shadow: var(--shadow); overflow: hidden; }
+    .card-title { background: var(--red-light); color: var(--red); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 7px 14px; border-bottom: 1px solid #fecaca; }
+    .card-body { padding: 14px; display: flex; flex-direction: column; gap: 11px; }
 
-/* ── Content ── */
-.content { padding: 16px; max-width: 600px; margin: 0 auto; }
+    /* ── FIELDS ── */
+    .row { display: flex; gap: 10px; }
+    .field { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .field label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .field label .req { color: var(--red); }
+    .field input, .field textarea, .field select {
+      border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 10px 11px; font-family: 'Heebo', sans-serif; font-size: 15px;
+      background: #fafaf9; color: var(--text); direction: rtl; width: 100%;
+    }
+    .field input:focus, .field textarea:focus { outline: none; border-color: var(--red); background: #fff; }
+    .field textarea { resize: vertical; min-height: 72px; }
 
-/* ── Technician selector ── */
-.tech-bar {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.tech-bar label { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
-.tech-bar select {
-  flex: 1;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-family: 'Heebo', sans-serif;
-  font-size: 15px;
-  background: #fafaf9;
-  color: var(--text);
-  direction: rtl;
-}
+    /* ── PARTS TABLE ── */
+    .parts-table { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .parts-head { display: grid; grid-template-columns: 1fr 64px 96px; background: #f5f3ef; padding: 7px 12px; font-size: 11px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); text-align: center; }
+    .parts-head span:first-child { text-align: right; }
+    .part-row { display: grid; grid-template-columns: 1fr 64px 96px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); background: #fff; }
+    .part-row:last-child { border-bottom: none; }
+    .part-name { font-size: 14px; }
+    .part-check { display: flex; justify-content: center; }
+    .check-btn { width: 28px; height: 28px; border-radius: 7px; border: 2px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.15s; }
+    .check-btn.ok.active { background: var(--green); border-color: var(--green); color: #fff; }
+    .check-btn.bad.active { background: var(--orange); border-color: var(--orange); color: #fff; }
 
-/* ── Cards ── */
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  margin-bottom: 14px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-.card-title {
-  background: var(--red-light);
-  color: var(--red);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 8px 16px;
-  border-bottom: 1px solid #fecaca;
-}
-.card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+    /* ── STATUS BADGE ── */
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .status-open { background: #fef3c7; color: #92400e; }
+    .status-done { background: var(--green-light); color: #14532d; }
 
-/* ── Fields ── */
-.row { display: flex; gap: 10px; }
-.field { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.field label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
-.field label .req { color: var(--red); }
-.field input, .field textarea, .field select {
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-family: 'Heebo', sans-serif;
-  font-size: 15px;
-  background: #fafaf9;
-  color: var(--text);
-  direction: rtl;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-.field input:focus, .field textarea:focus {
-  outline: none;
-  border-color: var(--red);
-  background: #fff;
-}
-.field textarea { resize: vertical; min-height: 80px; }
+    /* ── SEARCH ── */
+    .search-box { position: relative; margin-bottom: 14px; }
+    .search-box input { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px 12px 42px; font-family: 'Heebo', sans-serif; font-size: 15px; background: #fff; direction: rtl; }
+    .search-box input:focus { outline: none; border-color: var(--red); }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 
-/* ── Parts table ── */
-.parts-table { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; }
-.parts-head {
-  display: grid;
-  grid-template-columns: 1fr 72px 100px;
-  background: #f5f3ef;
-  padding: 8px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-  text-align: center;
-}
-.parts-head span:first-child { text-align: right; }
-.part-row {
-  display: grid;
-  grid-template-columns: 1fr 72px 100px;
-  align-items: center;
-  padding: 11px 12px;
-  border-bottom: 1px solid var(--border);
-  background: #fff;
-}
-.part-row:last-child { border-bottom: none; }
-.part-name { font-size: 14px; font-weight: 500; }
-.part-check { display: flex; justify-content: center; }
-.check-btn {
-  width: 28px; height: 28px;
-  border-radius: 7px;
-  border: 2px solid var(--border);
-  background: transparent;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.check-btn.ok.active { background: var(--green); border-color: var(--green); color: #fff; }
-.check-btn.bad.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+    /* ── JOB LIST ── */
+    .job-item { background: #fff; border-radius: var(--radius); padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.1s; border-right: 4px solid var(--red); }
+    .job-item:active { transform: scale(0.98); }
+    .job-item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .job-name { font-weight: 700; font-size: 16px; }
+    .job-meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .job-date { font-size: 12px; color: var(--muted); }
 
-/* ── Approval ── */
-.approval-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-bottom: 14px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.approval-row .big-check {
-  width: 28px; height: 28px; flex-shrink: 0;
-  border-radius: 8px; border: 2px solid var(--border);
-  background: transparent; transition: all 0.15s;
-  display: flex; align-items: center; justify-content: center;
-}
-.approval-row.checked .big-check { background: var(--red); border-color: var(--red); color: #fff; font-size: 16px; }
-.approval-text { font-size: 13px; line-height: 1.5; color: var(--text); }
+    /* ── DETAIL VIEW ── */
+    .detail-header { background: var(--red); color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    .back-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .detail-title { font-size: 16px; font-weight: 700; flex: 1; }
 
-/* ── Submit ── */
-.submit-btn {
-  width: 100%;
-  padding: 16px;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-family: 'Heebo', sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 20px;
-  transition: background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.submit-btn:active { background: var(--red-dark); }
-.submit-btn:disabled { background: #d1ccc8; cursor: not-allowed; }
+    /* ── BUTTONS ── */
+    .btn-primary { width: 100%; padding: 14px; background: var(--red); color: #fff; border: none; border-radius: var(--radius); font-family: 'Heebo', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .btn-primary:disabled { background: #d1ccc8; }
+    .btn-secondary { width: 100%; padding: 12px; background: #fff; color: var(--red); border: 2px solid var(--red); border-radius: var(--radius); font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .btn-green { width: 100%; padding: 14px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-family: 'Heebo', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
 
-/* ── Status ── */
-.status-bar {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 12px 24px;
-  border-radius: 50px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  z-index: 200;
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-  white-space: nowrap;
-}
-.status-bar.show { opacity: 1; }
-.status-bar.success { background: var(--green); }
-.status-bar.error { background: var(--orange); }
-.status-bar.loading { background: #44403c; }
+    /* ── APPROVAL ── */
+    .approval-row { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; cursor: pointer; }
+    .big-check { width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .approval-row.checked .big-check { background: var(--red); border-color: var(--red); color: #fff; font-size: 16px; }
+    .approval-text { font-size: 13px; line-height: 1.5; }
 
-/* ── Success screen ── */
-.success-screen {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  text-align: center;
-  padding: 40px 20px;
-}
-.success-screen.show { display: flex; }
-.success-icon {
-  width: 72px; height: 72px; border-radius: 50%;
-  background: var(--green); color: #fff;
-  font-size: 36px; display: flex;
-  align-items: center; justify-content: center;
-  margin-bottom: 20px;
-}
-.success-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-.success-screen p { color: var(--muted); font-size: 15px; line-height: 1.6; }
-.new-btn {
-  margin-top: 28px;
-  padding: 13px 36px;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-family: 'Heebo', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); padding: 11px 22px; border-radius: 50px; font-size: 14px; font-weight: 600; color: #fff; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+    .toast.show { opacity: 1; }
+    .toast.success { background: var(--green); }
+    .toast.error { background: var(--orange); }
+    .toast.info { background: #44403c; }
 
-/* ── Offline badge ── */
-.offline-badge {
-  display: none;
-  background: #78716c;
-  color: #fff;
-  font-size: 12px;
-  padding: 4px 12px;
-  text-align: center;
-}
-body.offline .offline-badge { display: block; }
-```
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty p { font-size: 15px; }
 
+    /* ── STATS ── */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .stat-card { background: #fff; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); text-align: center; }
+    .stat-num { font-size: 28px; font-weight: 900; color: var(--red); }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* ── HISTORY ITEM ── */
+    .history-item { background: #fafaf9; border-radius: 8px; padding: 12px; border-right: 3px solid var(--red); margin-bottom: 8px; cursor: pointer; }
+    .history-item:last-child { margin-bottom: 0; }
+    .history-date { font-size: 12px; color: var(--muted); }
+    .history-tech { font-size: 13px; font-weight: 600; }
+    .history-complaint { font-size: 13px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .loading { text-align: center; padding: 30px; color: var(--muted); font-size: 15px; }
+    .section-label { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; margin-top: 4px; }
   </style>
 </head>
 <body>
 
-<div class="offline-badge">⚠️ אין חיבור לאינטרנט — הטופס יישמר מקומית וישלח כשהחיבור יחזור</div>
-
-<header class="app-header">
-  <div class="badge">217</div>
-  <div>
-    <div class="header-title">טופס קליטה וטיפול</div>
-    <div class="header-sub">המרכז הישראלי למכונאות האופניים</div>
-  </div>
-  <div class="doc-num" id="docNum">#—</div>
-</header>
-
-<div class="content">
-
-  <!-- Success screen -->
-
-  <div class="success-screen" id="successScreen">
-    <div class="success-icon">✓</div>
-    <h2>הטופס נשמר!</h2>
-    <p id="successMsg">הנתונים נשלחו לגוגל שיטס בהצלחה.</p>
-    <button class="new-btn" onclick="resetForm()">טופס חדש +</button>
-  </div>
-
-  <!-- Form -->
-
-  <div id="formContent">
-
-```
-<!-- Technician -->
-<div class="tech-bar">
-  <label>טכנאי:</label>
-  <select id="techSelect">
-    <option value="">— בחר טכנאי —</option>
-    <!-- Add technician names here -->
-    <option>טכנאי 1</option>
-    <option>טכנאי 2</option>
-    <option>טכנאי 3</option>
-  </select>
-</div>
-
-<!-- Customer -->
-<div class="card">
-  <div class="card-title">פרטי לקוח/ה</div>
-  <div class="card-body">
-    <div class="row">
-      <div class="field">
-        <label>שם <span class="req">*</span></label>
-        <input type="text" id="firstName" inputmode="text" autocomplete="given-name" />
-      </div>
-      <div class="field">
-        <label>משפחה</label>
-        <input type="text" id="lastName" autocomplete="family-name" />
-      </div>
+<!-- ═══════════════════════════════════════════════════════ LOGIN -->
+<div id="loginScreen" class="screen active">
+  <div class="login-logo">217</div>
+  <div class="login-subtitle">המרכז הישראלי למכונאות האופניים</div>
+  <div class="login-card">
+    <h2>כניסה למערכת</h2>
+    <div class="login-field">
+      <label>טכנאי</label>
+      <select id="loginTech">
+        <option value="">— בחר שם —</option>
+      </select>
     </div>
-    <div class="row">
-      <div class="field">
-        <label>טלפון <span class="req">*</span></label>
-        <input type="tel" id="phone" inputmode="tel" autocomplete="tel" />
-      </div>
-      <div class="field">
-        <label>דוא״ל</label>
-        <input type="email" id="email" inputmode="email" autocomplete="email" />
-      </div>
+    <div class="login-field">
+      <label>קוד גישה</label>
+      <input type="password" id="loginPin" placeholder="••••" maxlength="6" inputmode="numeric" />
     </div>
-    <div class="field">
-      <label>כתובת</label>
-      <input type="text" id="address" autocomplete="street-address" />
-    </div>
+    <button class="login-btn" onclick="doLogin()">כניסה</button>
+    <div class="login-error" id="loginError"></div>
   </div>
 </div>
 
-<!-- Bike -->
-<div class="card">
-  <div class="card-title">פרטי האופניים</div>
-  <div class="card-body">
-    <div class="row">
-      <div class="field">
-        <label>מותג</label>
-        <input type="text" id="brand" />
-      </div>
-      <div class="field">
-        <label>צבע</label>
-        <input type="text" id="color" />
-      </div>
+<!-- ═══════════════════════════════════════════════════════ MAIN APP -->
+<div id="appScreen" class="screen">
+
+  <header class="app-header">
+    <div class="header-badge">217</div>
+    <div style="flex:1">
+      <div class="header-title" id="headerTitle">מערכת שירות</div>
+      <div class="header-tech" id="headerTech"></div>
     </div>
-    <div class="row">
-      <div class="field">
-        <label>שנה</label>
-        <input type="number" id="year" inputmode="numeric" min="1990" max="2030" />
-      </div>
-      <div class="field">
-        <label>מס׳ שלדה</label>
-        <input type="text" id="serial" />
-      </div>
+    <button class="logout-btn" onclick="doLogout()">יציאה</button>
+  </header>
+
+  <!-- HOME TAB -->
+  <div id="tabHome" class="content">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="stat-num" id="statOpen">—</div><div class="stat-label">עבודות פתוחות</div></div>
+      <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">סה״כ עבודות</div></div>
     </div>
+    <div class="section-label">עבודות פתוחות אחרונות</div>
+    <div id="recentJobs"><div class="loading">טוען...</div></div>
   </div>
-</div>
 
-<!-- Complaint -->
-<div class="card">
-  <div class="card-title">תלונת הלקוח/ה</div>
-  <div class="card-body">
-    <div class="field">
-      <label>תיאור הבעיה</label>
-      <textarea id="complaint" rows="3" placeholder="תאר את הבעיה בחופשיות..."></textarea>
-    </div>
-  </div>
-</div>
+  <!-- NEW JOB TAB -->
+  <div id="tabNew" class="content" style="display:none">
 
-<!-- Diagnostics -->
-<div class="card">
-  <div class="card-title">דו״ח טיפול כללי</div>
-  <div class="card-body">
-    <div class="parts-table">
-      <div class="parts-head">
-        <span>רכיב</span>
-        <span>תקין</span>
-        <span>אסור לשימוש</span>
-      </div>
-      <!-- rows injected by JS -->
-      <div id="partsRows"></div>
-    </div>
-    <div class="field">
-      <label>פירוט הפגמים והתקלות</label>
-      <textarea id="faults" rows="3"></textarea>
-    </div>
-    <div class="field">
-      <label>המלצות וטיפול</label>
-      <textarea id="repairs" rows="3"></textarea>
-    </div>
-  </div>
-</div>
-
-<!-- Technician sign-off -->
-<div class="card">
-  <div class="card-title">סיום טיפול</div>
-  <div class="card-body">
-    <div class="row">
-      <div class="field">
-        <label>תאריך סיום</label>
-        <input type="date" id="endDate" />
-      </div>
-      <div class="field">
-        <label>שעת סיום</label>
-        <input type="time" id="endTime" />
+    <div class="card">
+      <div class="card-title">פרטי לקוח/ה</div>
+      <div class="card-body">
+        <div class="row">
+          <div class="field"><label>שם <span class="req">*</span></label><input type="text" id="nFirstName" /></div>
+          <div class="field"><label>משפחה</label><input type="text" id="nLastName" /></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>טלפון <span class="req">*</span></label><input type="tel" id="nPhone" inputmode="tel" /></div>
+          <div class="field"><label>דוא״ל</label><input type="email" id="nEmail" inputmode="email" /></div>
+        </div>
+        <div class="field"><label>כתובת</label><input type="text" id="nAddress" /></div>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-title">פרטי האופניים</div>
+      <div class="card-body">
+        <div class="row">
+          <div class="field"><label>מותג</label><input type="text" id="nBrand" /></div>
+          <div class="field"><label>צבע</label><input type="text" id="nColor" /></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>שנה</label><input type="number" id="nYear" inputmode="numeric" /></div>
+          <div class="field"><label>מס׳ שלדה <span class="req">*</span></label><input type="text" id="nSerial" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">תלונת הלקוח/ה</div>
+      <div class="card-body">
+        <div class="field"><label>תיאור הבעיה</label><textarea id="nComplaint" rows="3"></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">בדיקת רכיבים</div>
+      <div class="card-body">
+        <div class="parts-table">
+          <div class="parts-head"><span>רכיב</span><span>תקין</span><span>אסור לשימוש</span></div>
+          <div id="newPartsRows"></div>
+        </div>
+        <div class="field"><label>פירוט תקלות</label><textarea id="nFaults" rows="3"></textarea></div>
+        <div class="field"><label>המלצות וטיפול</label><textarea id="nRepairs" rows="3"></textarea></div>
+      </div>
+    </div>
+
+    <div class="approval-row" id="nApprovalRow" onclick="toggleApproval('n')">
+      <div class="big-check" id="nApprovalCheck"></div>
+      <div class="approval-text">הלקוח/ה מאשר/ת קבלת הטיפול ומסכים/ה לתנאי השירות</div>
+    </div>
+
+    <button class="btn-primary" id="newSubmitBtn" onclick="submitNewJob()">פתח עבודה חדשה</button>
   </div>
+
+  <!-- SEARCH TAB -->
+  <div id="tabSearch" class="content" style="display:none">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="חפש לפי שם, טלפון, מס׳ שלדה..." oninput="doSearch()" />
+      <span class="search-icon">🔍</span>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="navHome" onclick="switchTab('Home')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      בית
+    </button>
+    <button class="nav-btn" id="navNew" onclick="switchTab('New')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      עבודה חדשה
+    </button>
+    <button class="nav-btn" id="navSearch" onclick="switchTab('Search')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      חיפוש
+    </button>
+  </nav>
 </div>
 
-<!-- Approval -->
-<div class="approval-row" id="approvalRow" onclick="toggleApproval()">
-  <div class="big-check" id="approvalCheck"></div>
-  <div class="approval-text">הלקוח/ה מאשר/ת קבלת הטיפול ומסכים/ה לתנאי השירות של המרכז</div>
+<!-- ═══════════════════════════════════════════════════════ JOB DETAIL -->
+<div id="detailScreen" class="screen">
+  <div class="detail-header">
+    <button class="back-btn" onclick="closeDetail()">←</button>
+    <div class="detail-title" id="detailTitle">פרטי עבודה</div>
+    <div id="detailStatus"></div>
+  </div>
+  <div class="content" id="detailContent" style="padding-bottom: 20px;"></div>
 </div>
 
-<button class="submit-btn" id="submitBtn" onclick="submitForm()">שמור ושלח לגוגל שיטס ↑</button>
-```
-
-  </div><!-- /formContent -->
-</div><!-- /content -->
-
-<div class="status-bar" id="statusBar"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-  // ─── CONFIG ────────────────────────────────────────────────────────────────
-  // הדבק כאן את ה-URL שתקבל מ-Google Apps Script לאחר פרסום
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWObhglvSKwOh3wHHXDdEB9biiukqv8uzqj2FkOm4OOCBpqmTM2Ek6uZ5YQG8QARIM3g/exec";
-
-  const TECHNICIANS = ["טכנאי 1", "טכנאי 2", "טכנאי 3"]; // שנה לשמות אמיתיים
-
+  // ─── DATA ───────────────────────────────────────────────────────────────────
   const PARTS = [
-    { key: "brakes",     label: "בלמים" },
-    { key: "wheels",     label: "גלגלים" },
-    { key: "steering",   label: "היגוי" },
-    { key: "drivetrain", label: "הנעה" },
-    { key: "frame",      label: "שלדה" },
-    { key: "suspension", label: "שיכוך" },
-    { key: "electrical", label: "מערכת חשמל" },
-    { key: "other",      label: "אחר" },
+    { key:"brakes", label:"בלמים" }, { key:"wheels", label:"גלגלים" },
+    { key:"steering", label:"היגוי" }, { key:"drivetrain", label:"הנעה" },
+    { key:"frame", label:"שלדה" }, { key:"suspension", label:"שיכוך" },
+    { key:"electrical", label:"מערכת חשמל" }, { key:"other", label:"אחר" },
   ];
-  // ───────────────────────────────────────────────────────────────────────────
 
-  let partState = {}; // { brakes: {ok: false, bad: false}, ... }
-  let approved = false;
+  // ─── TECHNICIANS (ניתן להוסיף כמה שרוצים) ──────────────────────────────────
+  // פורמט: { name: "שם", pin: "קוד" }
+  const TECHNICIANS = [
+    { name: "טכנאי 1", pin: "1111" },
+    { name: "טכנאי 2", pin: "2222" },
+    { name: "טכנאי 3", pin: "3333" },
+  ];
+  // ────────────────────────────────────────────────────────────────────────────
 
-  // Init
-  PARTS.forEach(p => { partState[p.key] = { ok: false, bad: false }; });
-  buildParts();
-  buildTechSelect();
-  setDocNum();
-  setDefaultDates();
+  let currentTech = null;
+  let newPartState = {};
+  let editPartState = {};
+  let newApproved = false;
+  let currentJobId = null;
+  let allJobs = [];
 
-  function setDocNum() {
-    document.getElementById("docNum").textContent = "#" + Date.now().toString().slice(-5);
-  }
+  PARTS.forEach(p => { newPartState[p.key] = { ok:false, bad:false }; });
 
-  function setDefaultDates() {
-    const now = new Date();
-    const dateStr = now.toISOString().slice(0, 10);
-    const timeStr = now.toTimeString().slice(0, 5);
-    document.getElementById("endDate").value = dateStr;
-    document.getElementById("endTime").value = timeStr;
-  }
-
-  function buildTechSelect() {
-    const sel = document.getElementById("techSelect");
-    sel.innerHTML = '<option value="">— בחר טכנאי —</option>';
+  // ─── LOGIN ──────────────────────────────────────────────────────────────────
+  function initTechSelect() {
+    const sel = document.getElementById("loginTech");
+    sel.innerHTML = '<option value="">— בחר שם —</option>';
     TECHNICIANS.forEach(t => {
       const o = document.createElement("option");
-      o.textContent = t; o.value = t;
+      o.value = t.name; o.textContent = t.name;
       sel.appendChild(o);
     });
   }
 
-  function buildParts() {
-    const container = document.getElementById("partsRows");
-    container.innerHTML = "";
+  function doLogin() {
+    const name = document.getElementById("loginTech").value;
+    const pin = document.getElementById("loginPin").value;
+    const tech = TECHNICIANS.find(t => t.name === name && t.pin === pin);
+    if (!tech) { document.getElementById("loginError").textContent = "שם או קוד שגוי"; return; }
+    currentTech = tech.name;
+    document.getElementById("loginError").textContent = "";
+    document.getElementById("loginPin").value = "";
+    document.getElementById("headerTech").textContent = tech.name;
+    showScreen("appScreen");
+    switchTab("Home");
+    loadStats();
+    loadRecentJobs();
+  }
+
+  document.getElementById("loginPin").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+
+  function doLogout() {
+    currentTech = null;
+    showScreen("loginScreen");
+  }
+
+  // ─── SCREENS ────────────────────────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  }
+
+  function switchTab(tab) {
+    ["Home","New","Search"].forEach(t => {
+      document.getElementById("tab"+t).style.display = t===tab ? "block" : "none";
+      document.getElementById("nav"+t).classList.toggle("active", t===tab);
+    });
+    if(tab==="Home") { loadStats(); loadRecentJobs(); }
+  }
+
+  // ─── PARTS ──────────────────────────────────────────────────────────────────
+  function buildParts(containerId, stateObj, prefix) {
+    const c = document.getElementById(containerId);
+    c.innerHTML = "";
     PARTS.forEach(({ key, label }) => {
       const row = document.createElement("div");
       row.className = "part-row";
       row.innerHTML = `
         <span class="part-name">${label}</span>
-        <span class="part-check">
-          <button class="check-btn ok" id="${key}_ok" onclick="togglePart('${key}','ok')">✓</button>
-        </span>
-        <span class="part-check">
-          <button class="check-btn bad" id="${key}_bad" onclick="togglePart('${key}','bad')">!</button>
-        </span>
+        <span class="part-check"><button class="check-btn ok" id="${prefix}_${key}_ok" onclick="togglePart('${prefix}','${key}','ok')">✓</button></span>
+        <span class="part-check"><button class="check-btn bad" id="${prefix}_${key}_bad" onclick="togglePart('${prefix}','${key}','bad')">!</button></span>
       `;
-      container.appendChild(row);
+      c.appendChild(row);
     });
   }
 
-  function togglePart(key, type) {
-    const other = type === "ok" ? "bad" : "ok";
-    partState[key][type] = !partState[key][type];
-    if (partState[key][type]) partState[key][other] = false;
-    document.getElementById(`${key}_ok`).classList.toggle("active", partState[key].ok);
-    document.getElementById(`${key}_bad`).classList.toggle("active", partState[key].bad);
+  function togglePart(prefix, key, type) {
+    const state = prefix==="n" ? newPartState : editPartState;
+    const other = type==="ok"?"bad":"ok";
+    state[key][type] = !state[key][type];
+    if(state[key][type]) state[key][other] = false;
+    document.getElementById(`${prefix}_${key}_ok`).classList.toggle("active", state[key].ok);
+    document.getElementById(`${prefix}_${key}_bad`).classList.toggle("active", state[key].bad);
   }
 
-  function toggleApproval() {
-    approved = !approved;
-    document.getElementById("approvalRow").classList.toggle("checked", approved);
-    document.getElementById("approvalCheck").textContent = approved ? "✓" : "";
+  function toggleApproval(prefix) {
+    if(prefix==="n") {
+      newApproved = !newApproved;
+      document.getElementById("nApprovalRow").classList.toggle("checked", newApproved);
+      document.getElementById("nApprovalCheck").textContent = newApproved?"✓":"";
+    }
   }
 
-  function getVal(id) { return document.getElementById(id)?.value?.trim() || ""; }
+  function getVal(id) { return document.getElementById(id)?.value?.trim()||""; }
 
-  function showStatus(msg, type, duration = 3000) {
-    const bar = document.getElementById("statusBar");
-    bar.textContent = msg;
-    bar.className = `status-bar show ${type}`;
-    setTimeout(() => bar.className = "status-bar", duration);
+  // ─── FIREBASE HELPERS ───────────────────────────────────────────────────────
+  async function waitFirebase() {
+    if(window._firebaseReady) return;
+    return new Promise(res => window.addEventListener("firebaseReady", res, {once:true}));
   }
 
-  async function submitForm() {
-    const firstName = getVal("firstName");
-    const phone = getVal("phone");
-    if (!firstName) { showStatus("נא למלא שם לקוח", "error"); return; }
-    if (!phone) { showStatus("נא למלא טלפון", "error"); return; }
+  async function saveJob(data) {
+    await waitFirebase();
+    return window._addDoc(window._col(window._db,"jobs"), data);
+  }
 
-    const btn = document.getElementById("submitBtn");
-    btn.disabled = true;
-    btn.textContent = "שולח...";
-    showStatus("שולח את הטופס...", "loading", 10000);
+  async function fetchJobs(filters={}) {
+    await waitFirebase();
+    const snapshot = await window._getDocs(window._col(window._db,"jobs"));
+    return snapshot.docs.map(d => ({ id:d.id, ...d.data() }));
+  }
 
-    const partsStatus = {};
-    PARTS.forEach(({ key, label }) => {
-      partsStatus[label] = partState[key].ok ? "תקין" : partState[key].bad ? "אסור לשימוש" : "—";
+  async function updateJob(id, data) {
+    await waitFirebase();
+    return window._updateDoc(window._doc(window._db,"jobs",id), data);
+  }
+
+  // ─── SUBMIT NEW JOB ─────────────────────────────────────────────────────────
+  async function submitNewJob() {
+    const firstName = getVal("nFirstName");
+    const serial = getVal("nSerial");
+    if(!firstName) { showToast("נא למלא שם לקוח","error"); return; }
+    if(!getVal("nPhone")) { showToast("נא למלא טלפון","error"); return; }
+
+    const btn = document.getElementById("newSubmitBtn");
+    btn.disabled = true; btn.textContent = "שומר...";
+
+    const partsData = {};
+    PARTS.forEach(({key,label}) => {
+      partsData[label] = newPartState[key].ok?"תקין":newPartState[key].bad?"אסור לשימוש":"—";
     });
 
-    const payload = {
-      timestamp: new Date().toLocaleString("he-IL"),
-      technician: getVal("techSelect") || document.getElementById("techSelect").value,
-      firstName, lastName: getVal("lastName"),
-      phone, email: getVal("email"), address: getVal("address"),
-      brand: getVal("brand"), color: getVal("color"),
-      year: getVal("year"), serial: getVal("serial"),
-      complaint: getVal("complaint"),
-      faults: getVal("faults"), repairs: getVal("repairs"),
-      endDate: getVal("endDate"), endTime: getVal("endTime"),
-      approved: approved ? "כן" : "לא",
-      ...partsStatus,
+    const job = {
+      status: "open",
+      createdAt: new Date().toISOString(),
+      technician: currentTech,
+      firstName, lastName: getVal("nLastName"),
+      phone: getVal("nPhone"), email: getVal("nEmail"), address: getVal("nAddress"),
+      brand: getVal("nBrand"), color: getVal("nColor"),
+      year: getVal("nYear"), serial: getVal("nSerial"),
+      complaint: getVal("nComplaint"),
+      faults: getVal("nFaults"), repairs: getVal("nRepairs"),
+      approved: newApproved?"כן":"לא",
+      parts: partsData,
     };
 
-    // Save to offline queue regardless
-    saveToQueue(payload);
-
-    if (!navigator.onLine) {
-      showStatus("נשמר — יישלח כשיהיה חיבור", "success");
-      afterSuccess(firstName, "הטופס נשמר ויישלח אוטומטית כשיחזור חיבור לאינטרנט.");
-      return;
-    }
-
     try {
-      await fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      clearQueue();
-      showStatus("✓ נשמר בגוגל שיטס!", "success");
-      afterSuccess(firstName, "הנתונים נשמרו בגוגל שיטס בהצלחה.");
-    } catch (e) {
-      showStatus("שגיאה — נשמר מקומית", "error");
-      afterSuccess(firstName, "לא הצלחנו לשלוח כעת — הטופס נשמר מקומית.");
+      await saveJob(job);
+      showToast("✓ עבודה נפתחה בהצלחה!","success");
+      resetNewForm();
+      switchTab("Home");
+    } catch(e) {
+      showToast("שגיאה בשמירה — בדוק חיבור","error");
     }
+    btn.disabled=false; btn.textContent="פתח עבודה חדשה";
   }
 
-  function afterSuccess(name, msg) {
-    document.getElementById("successMsg").textContent = msg;
-    document.getElementById("formContent").style.display = "none";
-    document.getElementById("successScreen").classList.add("show");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function resetForm() {
-    document.getElementById("successScreen").classList.remove("show");
-    document.getElementById("formContent").style.display = "block";
-    document.querySelectorAll("input, textarea").forEach(el => el.value = "");
-    document.getElementById("techSelect").selectedIndex = 0;
-    approved = false;
-    document.getElementById("approvalRow").classList.remove("checked");
-    document.getElementById("approvalCheck").textContent = "";
-    PARTS.forEach(({ key }) => {
-      partState[key] = { ok: false, bad: false };
-      document.getElementById(`${key}_ok`).classList.remove("active");
-      document.getElementById(`${key}_bad`).classList.remove("active");
+  function resetNewForm() {
+    ["nFirstName","nLastName","nPhone","nEmail","nAddress","nBrand","nColor","nYear","nSerial","nComplaint","nFaults","nRepairs"].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value="";
     });
-    setDocNum();
-    setDefaultDates();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    PARTS.forEach(({key}) => {
+      newPartState[key]={ok:false,bad:false};
+      const ok=document.getElementById(`n_${key}_ok`), bad=document.getElementById(`n_${key}_bad`);
+      if(ok) ok.classList.remove("active");
+      if(bad) bad.classList.remove("active");
+    });
+    newApproved=false;
+    document.getElementById("nApprovalRow").classList.remove("checked");
+    document.getElementById("nApprovalCheck").textContent="";
   }
 
-  // ── Offline queue ──
-  function saveToQueue(data) {
-    const q = JSON.parse(localStorage.getItem("formQueue") || "[]");
-    q.push(data);
-    localStorage.setItem("formQueue", JSON.stringify(q));
+  // ─── LOAD DATA ──────────────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const jobs = await fetchJobs();
+      allJobs = jobs;
+      const open = jobs.filter(j=>j.status==="open").length;
+      document.getElementById("statOpen").textContent = open;
+      document.getElementById("statTotal").textContent = jobs.length;
+    } catch(e) {}
   }
-  function clearQueue() { localStorage.removeItem("formQueue"); }
 
-  async function flushQueue() {
-    const q = JSON.parse(localStorage.getItem("formQueue") || "[]");
-    if (!q.length) return;
-    for (const payload of q) {
-      try {
-        await fetch(SCRIPT_URL, { method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
-      } catch(e) { return; }
+  async function loadRecentJobs() {
+    const container = document.getElementById("recentJobs");
+    container.innerHTML = '<div class="loading">טוען...</div>';
+    try {
+      const jobs = await fetchJobs();
+      allJobs = jobs;
+      const open = jobs.filter(j=>j.status==="open").sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,10);
+      if(!open.length) { container.innerHTML='<div class="empty"><div class="empty-icon">🚲</div><p>אין עבודות פתוחות</p></div>'; return; }
+      container.innerHTML = open.map(j => jobItemHTML(j)).join("");
+    } catch(e) {
+      container.innerHTML='<div class="empty"><p>שגיאה בטעינה</p></div>';
     }
-    clearQueue();
-    showStatus("✓ טפסים שמורים נשלחו!", "success");
   }
 
-  window.addEventListener("online", flushQueue);
-  window.addEventListener("offline", () => document.body.classList.add("offline"));
-  window.addEventListener("online", () => document.body.classList.remove("offline"));
-  if (!navigator.onLine) document.body.classList.add("offline");
-
-  // ── Service Worker registration ──
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+  function jobItemHTML(j) {
+    const date = j.createdAt ? new Date(j.createdAt).toLocaleDateString("he-IL") : "";
+    const badge = j.status==="open"
+      ? '<span class="status-badge status-open">פתוח</span>'
+      : '<span class="status-badge status-done">הושלם</span>';
+    return `
+      <div class="job-item" onclick="openDetail('${j.id}')">
+        <div class="job-item-header">
+          <div class="job-name">${j.firstName||""} ${j.lastName||""}</div>
+          ${badge}
+        </div>
+        <div class="job-meta">🚲 ${j.brand||""} ${j.color||""} ${j.serial?'| שלדה: '+j.serial:""}</div>
+        <div class="job-meta">📞 ${j.phone||""}</div>
+        <div class="job-date">${date} | ${j.technician||""}</div>
+      </div>`;
   }
+
+  // ─── SEARCH ─────────────────────────────────────────────────────────────────
+  async function doSearch() {
+    const q = document.getElementById("searchInput").value.trim().toLowerCase();
+    const container = document.getElementById("searchResults");
+    if(!q) { container.innerHTML=""; return; }
+    if(!allJobs.length) {
+      try { allJobs = await fetchJobs(); } catch(e) {}
+    }
+    const results = allJobs.filter(j =>
+      (j.firstName||"").toLowerCase().includes(q) ||
+      (j.lastName||"").toLowerCase().includes(q) ||
+      (j.phone||"").includes(q) ||
+      (j.serial||"").toLowerCase().includes(q) ||
+      (j.brand||"").toLowerCase().includes(q)
+    );
+    if(!results.length) { container.innerHTML='<div class="empty"><div class="empty-icon">🔍</div><p>לא נמצאו תוצאות</p></div>'; return; }
+    container.innerHTML = results.map(j => jobItemHTML(j)).join("");
+  }
+
+  // ─── JOB DETAIL ─────────────────────────────────────────────────────────────
+  async function openDetail(id) {
+    currentJobId = id;
+    showScreen("detailScreen");
+    document.getElementById("detailContent").innerHTML='<div class="loading">טוען...</div>';
+    try {
+      await waitFirebase();
+      const snap = await window._getDoc(window._doc(window._db,"jobs",id));
+      if(!snap.exists()) { document.getElementById("detailContent").innerHTML="<p>לא נמצא</p>"; return; }
+      const j = { id:snap.id, ...snap.data() };
+      renderDetail(j);
+    } catch(e) {
+      document.getElementById("detailContent").innerHTML="<p>שגיאה בטעינה</p>";
+    }
+  }
+
+  function renderDetail(j) {
+    const date = j.createdAt ? new Date(j.createdAt).toLocaleString("he-IL") : "";
+    const isOpen = j.status==="open";
+
+    document.getElementById("detailTitle").textContent = `${j.firstName||""} ${j.lastName||""}`;
+    document.getElementById("detailStatus").innerHTML = isOpen
+      ? '<span class="status-badge status-open">פתוח</span>'
+      : '<span class="status-badge status-done">הושלם</span>';
+
+    const partsRows = j.parts ? Object.entries(j.parts).map(([name,val])=>`
+      <div class="part-row">
+        <span class="part-name">${name}</span>
+        <span style="text-align:center;grid-column:span 2;font-size:13px;color:var(--muted)">${val}</span>
+      </div>`).join("") : "";
+
+    document.getElementById("detailContent").innerHTML = `
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">פרטי לקוח/ה</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="field"><label>שם</label><input type="text" id="e_firstName" value="${j.firstName||""}" /></div>
+            <div class="field"><label>משפחה</label><input type="text" id="e_lastName" value="${j.lastName||""}" /></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>טלפון</label><input type="tel" id="e_phone" value="${j.phone||""}" /></div>
+            <div class="field"><label>דוא״ל</label><input type="email" id="e_email" value="${j.email||""}" /></div>
+          </div>
+          <div class="field"><label>כתובת</label><input type="text" id="e_address" value="${j.address||""}" /></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">פרטי האופניים</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="field"><label>מותג</label><input type="text" id="e_brand" value="${j.brand||""}" /></div>
+            <div class="field"><label>צבע</label><input type="text" id="e_color" value="${j.color||""}" /></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>שנה</label><input type="text" id="e_year" value="${j.year||""}" /></div>
+            <div class="field"><label>מס׳ שלדה</label><input type="text" id="e_serial" value="${j.serial||""}" /></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">תלונה ועבודה</div>
+        <div class="card-body">
+          <div class="field"><label>תלונת לקוח</label><textarea id="e_complaint" rows="3">${j.complaint||""}</textarea></div>
+          <div class="field"><label>פירוט תקלות</label><textarea id="e_faults" rows="3">${j.faults||""}</textarea></div>
+          <div class="field"><label>המלצות וטיפול</label><textarea id="e_repairs" rows="3">${j.repairs||""}</textarea></div>
+        </div>
+      </div>
+
+      ${j.parts ? `<div class="card"><div class="card-title">מצב רכיבים</div><div class="card-body"><div class="parts-table"><div class="parts-head"><span>רכיב</span><span style="grid-column:span 2;text-align:center">סטטוס</span></div>${partsRows}</div></div></div>` : ""}
+
+      <div class="card">
+        <div class="card-title">מידע</div>
+        <div class="card-body">
+          <div style="font-size:13px;color:var(--muted)">נפתח: ${date}</div>
+          <div style="font-size:13px;color:var(--muted)">טכנאי: ${j.technician||""}</div>
+          <div style="font-size:13px;color:var(--muted)">אישור לקוח: ${j.approved||"—"}</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="saveEdit()" style="margin-bottom:10px">שמור שינויים</button>
+      ${isOpen ? `<button class="btn-green" onclick="markDone()">✓ סמן כהושלם</button>` : ""}
+
+      ${j.history && j.history.length ? `
+        <div class="section-label" style="margin-top:8px">היסטוריית עדכונים</div>
+        ${j.history.map(h=>`
+          <div class="history-item">
+            <div class="history-date">${new Date(h.at).toLocaleString("he-IL")} | ${h.by||""}</div>
+            <div class="history-complaint">${h.note||""}</div>
+          </div>`).join("")}
+      ` : ""}
+    `;
+  }
+
+  async function saveEdit() {
+    const getE = id => document.getElementById(id)?.value?.trim()||"";
+    const update = {
+      firstName: getE("e_firstName"), lastName: getE("e_lastName"),
+      phone: getE("e_phone"), email: getE("e_email"), address: getE("e_address"),
+      brand: getE("e_brand"), color: getE("e_color"), year: getE("e_year"), serial: getE("e_serial"),
+      complaint: getE("e_complaint"), faults: getE("e_faults"), repairs: getE("e_repairs"),
+      updatedAt: new Date().toISOString(), updatedBy: currentTech,
+    };
+    try {
+      // append to history
+      await waitFirebase();
+      const snap = await window._getDoc(window._doc(window._db,"jobs",currentJobId));
+      const existing = snap.data();
+      const history = existing.history || [];
+      history.push({ at: new Date().toISOString(), by: currentTech, note: update.repairs || update.faults || "עדכון" });
+      update.history = history;
+      await updateJob(currentJobId, update);
+      showToast("✓ נשמר!","success");
+      openDetail(currentJobId);
+    } catch(e) { showToast("שגיאה בשמירה","error"); }
+  }
+
+  async function markDone() {
+    try {
+      await updateJob(currentJobId, { status:"done", closedAt: new Date().toISOString(), closedBy: currentTech });
+      showToast("✓ עבודה הושלמה!","success");
+      openDetail(currentJobId);
+      allJobs = [];
+    } catch(e) { showToast("שגיאה","error"); }
+  }
+
+  function closeDetail() {
+    showScreen("appScreen");
+    allJobs = [];
+    loadStats();
+    loadRecentJobs();
+  }
+
+  // ─── TOAST ──────────────────────────────────────────────────────────────────
+  function showToast(msg, type="info", duration=3000) {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.className = `toast show ${type}`;
+    setTimeout(()=>t.className="toast", duration);
+  }
+
+  // ─── INIT ────────────────────────────────────────────────────────────────────
+  initTechSelect();
+  buildParts("newPartsRows", newPartState, "n");
+
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
-
 </body>
 </html>
