@@ -35,7 +35,7 @@
     window._addDoc = addDoc;
     window._getDocs = getDocs;
     window._getDoc = getDoc;
-    window._doc = doc;
+    window._doc = (colName, id) => doc(db, colName, id);
     window._updateDoc = updateDoc;
     window._query = query;
     window._where = where;
@@ -477,18 +477,18 @@
 
   async function saveJob(data) {
     await waitFirebase();
-    return window._addDoc(window._col(window._db,"jobs"), data);
+    return window._addDoc(window._col("jobs"), data);
   }
 
   async function fetchJobs(filters={}) {
     await waitFirebase();
-    const snapshot = await window._getDocs(window._col(window._db,"jobs"));
+    const snapshot = await window._getDocs(window._col("jobs"));
     return snapshot.docs.map(d => ({ id:d.id, ...d.data() }));
   }
 
   async function updateJob(id, data) {
     await waitFirebase();
-    return window._updateDoc(window._doc(window._db,"jobs",id), data);
+    return window._updateDoc(window._doc("jobs",id), data);
   }
 
   // ─── SUBMIT NEW JOB ─────────────────────────────────────────────────────────
@@ -614,7 +614,7 @@
     document.getElementById("detailContent").innerHTML='<div class="loading">טוען...</div>';
     try {
       await waitFirebase();
-      const snap = await window._getDoc(window._doc(window._db,"jobs",id));
+      const snap = await window._getDoc(window._doc("jobs",id));
       if(!snap.exists()) { document.getElementById("detailContent").innerHTML="<p>לא נמצא</p>"; return; }
       const j = { id:snap.id, ...snap.data() };
       renderDetail(j);
@@ -714,7 +714,7 @@
     try {
       // append to history
       await waitFirebase();
-      const snap = await window._getDoc(window._doc(window._db,"jobs",currentJobId));
+      const snap = await window._getDoc(window._doc("jobs",currentJobId));
       const existing = snap.data();
       const history = existing.history || [];
       history.push({ at: new Date().toISOString(), by: currentTech, note: update.repairs || update.faults || "עדכון" });
