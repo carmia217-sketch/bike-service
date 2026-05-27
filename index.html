@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -632,11 +633,18 @@
       ? '<span class="status-badge status-open">פתוח</span>'
       : '<span class="status-badge status-done">הושלם</span>';
 
-    const partsRows = j.parts ? Object.entries(j.parts).map(([name,val])=>`
+    // init editPartState from saved data
+    PARTS.forEach(({key, label}) => {
+      const val = j.parts ? j.parts[label] : "—";
+      editPartState[key] = { ok: val==="תקין", bad: val==="אסור לשימוש" };
+    });
+
+    const editPartsRows = PARTS.map(({key, label}) => `
       <div class="part-row">
-        <span class="part-name">${name}</span>
-        <span style="text-align:center;grid-column:span 2;font-size:13px;color:var(--muted)">${val}</span>
-      </div>`).join("") : "";
+        <span class="part-name">${label}</span>
+        <span class="part-check"><button class="check-btn ok ${editPartState[key].ok?'active':''}" id="e_${key}_ok" onclick="togglePart('e','${key}','ok')">✓</button></span>
+        <span class="part-check"><button class="check-btn bad ${editPartState[key].bad?'active':''}" id="e_${key}_bad" onclick="togglePart('e','${key}','bad')">!</button></span>
+      </div>`).join("");
 
     document.getElementById("detailContent").innerHTML = `
       <div class="card" style="margin-top:14px">
@@ -677,14 +685,29 @@
         </div>
       </div>
 
-      ${j.parts ? `<div class="card"><div class="card-title">מצב רכיבים</div><div class="card-body"><div class="parts-table"><div class="parts-head"><span>רכיב</span><span style="grid-column:span 2;text-align:center">סטטוס</span></div>${partsRows}</div></div></div>` : ""}
+      <div class="card">
+        <div class="card-title">בדיקת רכיבים</div>
+        <div class="card-body">
+          <div class="parts-table">
+            <div class="parts-head"><span>רכיב</span><span>תקין</span><span>אסור לשימוש</span></div>
+            ${editPartsRows}
+          </div>
+        </div>
+      </div>
 
       <div class="card">
         <div class="card-title">מידע</div>
         <div class="card-body">
-          <div style="font-size:13px;color:var(--muted)">נפתח: ${date}</div>
-          <div style="font-size:13px;color:var(--muted)">טכנאי: ${j.technician||""}</div>
-          <div style="font-size:13px;color:var(--muted)">אישור לקוח: ${j.approved||"—"}</div>
+          <div class="row">
+            <div class="field"><label>טכנאי</label><input type="text" id="e_technician" value="${j.technician||""}" /></div>
+            <div class="field"><label>אישור לקוח</label>
+              <select id="e_approved">
+                <option value="כן" ${j.approved==="כן"?"selected":""}>כן</option>
+                <option value="לא" ${j.approved!=="כן"?"selected":""}>לא</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">נפתח: ${date}</div>
         </div>
       </div>
 
@@ -704,15 +727,24 @@
 
   async function saveEdit() {
     const getE = id => document.getElementById(id)?.value?.trim()||"";
+
+    // collect parts from editPartState
+    const partsData = {};
+    PARTS.forEach(({key, label}) => {
+      partsData[label] = editPartState[key].ok ? "תקין" : editPartState[key].bad ? "אסור לשימוש" : "—";
+    });
+
     const update = {
       firstName: getE("e_firstName"), lastName: getE("e_lastName"),
       phone: getE("e_phone"), email: getE("e_email"), address: getE("e_address"),
       brand: getE("e_brand"), color: getE("e_color"), year: getE("e_year"), serial: getE("e_serial"),
       complaint: getE("e_complaint"), faults: getE("e_faults"), repairs: getE("e_repairs"),
+      technician: getE("e_technician"),
+      approved: document.getElementById("e_approved")?.value || "לא",
+      parts: partsData,
       updatedAt: new Date().toISOString(), updatedBy: currentTech,
     };
     try {
-      // append to history
       await waitFirebase();
       const snap = await window._getDoc(window._doc("jobs",currentJobId));
       const existing = snap.data();
